@@ -62,7 +62,7 @@ def aStar(maze, start, end):
         children = []
         # 인접한 x, y좌표 전부?
         for newPosition in [(0,-1), (0,1), (-1,0), (1,0), (-1,-1), (-1,1), (1,-1), (1,1)]:
-            # 노드 위치 업데이트?
+            # 노드 위치 업데이트
             # 대각선 고려
             nodePosition = (
                 currentNode.position[0] + newPosition[0],
@@ -78,11 +78,12 @@ def aStar(maze, start, end):
             if maze[nodePosition[0]][nodePosition[1]] != 0: # 1이면 장애물이 있는 것으로 간주
                 continue
             
-            new_node = Node(currentNode, nodePosition)
+            new_node = Node(currentNode, nodePosition) # nodePosition이 currentNode로부터 newPosition 리스트를 이용해서 만들어짐
             children.append(new_node)
 
         for child in children:
-                # 자식이 closedList에 있으면 continue
+                # child는 closedList에 들어갈 수 있는 가능성이 있는 노드
+                # 자식이 closedList에 있으면 넘어감
                 if child in closedList:
                         continue
                 
@@ -91,10 +92,14 @@ def aStar(maze, start, end):
 
                 child.f = child.g + child.h
 
-                # 자식이 openList에 있고 g값이 더 크면 continue
+                # child가 openList에 있고 g값이 더 크면 continue
                 if len([openNode for openNode in openList if child == openNode and child.g > openNode.g]) > 0:
+                    # 더 먼 거리를 이동한 것들을 지움
+                    # 위와 같은 리스트가 존재하면 continue
+                    # 같은 노드에 대해서 더 먼 거리를 돌아서 도달한 노드가 있다면 지움
                     continue
-
+                
+                # 위와 같은 상황이 발생하지 않으면 그냥 openList에 추가
                 openList.append(child)
 
 def main():

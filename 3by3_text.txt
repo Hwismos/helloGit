@@ -1,0 +1,7 @@
+- backtrack 함수 이해 안감
+	- came_from dictionary가 뭐하는거임?
+	- nodes 사전도 뭐임?
+- closed_set 집합 자료형? 같은데 얜 뭐임?
+	- 아님 
+	- dict임
+- in_closed에서 length 조사하는게 왜 필요한건데?
