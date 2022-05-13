@@ -1,0 +1,104 @@
+### 질문
+- backtrack 함수 이해 안감
+	- came_from dictionary가 뭐하는거임?
+	- nodes 사전도 뭐임?
+- closed_set 집합 자료형? 같은데 얜 뭐임?
+	- 아님 
+	- dict임
+- in_closed에서 length 조사하는게 왜 필요한건데?
+- count가 의미하는게 뭐임?
+	- count는 우선순위 큐에서 f와 h score에 관련돼서 중요하다?
+
+### if is_solvable() 이 True면
+- board가 board_solved가 아니면 loops
+- 상하좌우 제한한 뒤
+	- allow_r이 True라면
+	- 이것도 상하좌우 다 함
+- restrict 함수가 global 변수 allow_direction을 이용해서 범위를 제한함
+- allow_r만을 집중적으로 살펴보면
+
+	### 파이썬의 변수 범위
+	- 파이썬은 두 개의 분리된 상태를 유지함
+	- 함수 안의 객체와 함수 외부 객체를 유지(local scope와 global scope)
+	- 변수의 범위를 결정하는 방법은 LEGB법칙을 따름
+	- Local → Enclosing(외부 함수 안, 내부 함수 밖) → Global → 내장(Built-in)
+
+'''
+while board != board_solved:   #loops until board is solved         # 될 때까지 loops
+        RLrestrict()        # 상하좌우 제한
+        UDrestrict()
+        if allow_r:      #if able to move right
+            n1.position = right()    #board moves right, and board state saved in n1 position attribute
+'''
+- 위와 같은 cmd에서 범위를 이해해보자
+- right()은 empty space가 이동된 board를 return한다
+- 이때 right()는 어떤 board의 empty space를 이동한 뒤 return하는가
+- right()가 호출되면 find()가 호출된다
+- find는 board와 num을 인자로 갖는다
+- 이때 right가 find를 호출할 때 num은 0을 주니 무관하나 board를 인자로 넘겨준다
+- 이때 board는 어디서 온 것일까
+	- while에서 조건을 검사하는 board가 바로 그것이다
+
+- 잠시잠시잠시
+- 파이썬은 scope를 identation(들여쓰기)으로 구분한다
+- 앞선 예시의 while 이전에는 if is_solvable()이 존재하는데 이 if문이 가장 외부에 존재하는 if문이다.
+- 즉 no-identation 상태로 Level0 상태이다.
+- 고로 위쪽에 정의해둔 board를 그대로 가져와서 돌리면 된다
+- board는 여러 과정들을 통해 복사, 수정되니 이 후 상태가 변환된 점은 전혀 문제가 되지 않는다.
+	→ 파이썬의 scope에 대해서 이해할 수 있었음
+
+
+
+'''
+if allow_r:      #if able to move right
+            n1.position = right()    #board moves right, and board state saved in n1 position attribute
+            if in_closed(n1.position):  #checks if node was searched before
+                left()    #if node searched previously, node will not be searched and so board goes back to previous state
+            if not in_closed(n1.position):     #if node not searched
+                nodes["node%s" % count] = n1.position  #node added to total nodes dictionary
+                came_from["previous_node%s" % count] = copy.deepcopy(left())   #previous node added dictionary
+                n1.position = copy.deepcopy(right())  #moves right again because previous caused board to move left
+                h_score = distance()  #calculates h-score of search node
+                n1.f_score = h_score + backtrack(n1.position)   #h-score + g-score = f-score
+                open_set.put((n1.f_score, h_score, count, n1.position))  #values put in priority queue
+                board = copy.deepcopy(board_previous)  #board is reverted 1 move back
+                count += 1   #count is important in priority queue in event of a tie b/w f-score and h-score
+'''
+
+- allow_r이 True일 때를 살펴보자
+- n1 노드의 position(board라고 표현하는 것이 더 직관적이라고 생각함)에 right()된 새로운 board를 저장
+- n1의 position을 in_closed 함수의 인자로 넣어 closedList에 있는지 확인
+- 있으면 left()해서 board를 이전 상태로 돌림
+- closedList에 n1의 position이 존재하지 않는다면
+	- nodes dict의 key값: "node%s" % count 에 해당 n1.position을 저장
+	- came_from dict에는 현재 board를 left()한 것을 copy해서 저장
+		- 이전 board 형태, 이전 노드를 저장
+	- 막상 nodes랑 came_from dict는 노드는 저장안하고 node.position(board)만 저장하네
+	- h_score은 distance 함수를 통해 Manhattan distance를 계산
+	- n1 노드이 f_score에 g와 h값을 더해서 저장
+		- g는 backtrack 함수에 현재 노드의 position을 인자로 줬을 때 return된 값을 담네
+		- g의 정의를 생각해보자
+			- g는 시작 노드로부터 현재 노드까지의 cost잖아
+			- 이걸 퍼즐에 대입하면
+			- 노드는 board 정보를 포함해
+			- 시작 노드는 초기 보드 상태겠지?
+			- 시작 노드로부터 "얼마나" 변화했는지가 g 값이 될거야
+			- came_from과 nodes dict를 이용해서 current를 backtracking
+- open_set ← 우선순위 큐지 에 튜플로 묶은 (n1.f_score, h_score, count, n1.position)을 넣음
+- 튜플로 묶었을 때 보통 우선순위 큐에서 (파이썬에서는 min_heap인 걸로 알고 있음) 튜플의 앞 element로 우선순위 계산
+- f값이 가장 작은 노드가 꺼내짐이 보장됨
+
+'''
+next_item = open_set.get()[3]   #next item equals the n1.position (board state)
+board = copy.deepcopy(next_item)   #board is made equal to the search node
+if board == board_solved:
+	print("SOLVED")
+            break
+closed_set["node%s" %count] = copy.deepcopy(next_item)  #search node is added to closed set
+board_previous = copy.deepcopy(board)  #previous node saved in board_previous
+'''
+- next_item에 우선순위 큐에서 꺼낸 값을 저장
+	- n1.position을 꺼냄 → board를 꺼냄
+- board에 next_item을 copy...? 걍 백업하나?
+- closed_set dict에 next_item을 copy해서 추가?
+- board_previous에 지금 board copy해서 백업하고 다시 loop 돎...?
